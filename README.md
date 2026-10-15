@@ -15,8 +15,10 @@ O gráfico inclui itens com as duas datas preenchidas. Mostra título, período,
 Em **Settings → Secrets and variables → Actions**, crie:
 
 - Secret `PROJECTS_TOKEN`: token com leitura do GitHub Project. O `GITHUB_TOKEN` padrão não tem acesso a Projects. Para um Project de usuário, a documentação do GitHub indica PAT clássico com escopo `read:project`; se as issues forem privadas, o token também precisa de acesso ao repositório.
-- Variable `PROJECT_OWNER`: usuário ou organização que possui o Project.
+- Variable `PROJECT_OWNER`: usuário ou organização que possui o Project. Se não estiver definida, o workflow usa o owner do repositório.
 - Variable `PROJECT_NUMBER`: número exibido na URL do Project.
+
+> O workflow também aceita `PROJECT_OWNER` e `PROJECT_NUMBER` em **Secrets** (`secrets.PROJECT_OWNER` / `secrets.PROJECT_NUMBER`) quando essas informações forem salvas como secret.
 
 Opcionalmente, defina as variáveis `PROJECT_START_FIELD`, `PROJECT_FINISH_FIELD`, `PROJECT_STATUS_FIELD` e `PROJECT_PROGRESS_FIELD` se os nomes dos campos forem diferentes dos padrões (`Start date`, `Target date`, `Status` e `Progress`).
 

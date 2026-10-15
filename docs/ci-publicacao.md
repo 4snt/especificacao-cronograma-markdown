@@ -4,7 +4,7 @@ O workflow consulta o GitHub Project v2, gera um artefato HTML estático e publi
 
 ## Configuração necessária
 
-Defina `PROJECT_OWNER` e `PROJECT_NUMBER` nas variáveis do repositório e `PROJECTS_TOKEN` nos secrets. O token precisa ler o Project; o `GITHUB_TOKEN` da execução não tem acesso a Projects. Para um Project de usuário, use um PAT clássico com `read:project`. Não grave tokens no código ou nos arquivos do projeto.
+Defina `PROJECT_OWNER` e `PROJECT_NUMBER` nas variáveis do repositório e `PROJECTS_TOKEN` nos secrets. Como alternativa, o workflow também aceita `PROJECT_OWNER` e `PROJECT_NUMBER` em secrets. Se `PROJECT_OWNER` não for informado, o workflow usa automaticamente o owner do repositório. O token precisa ler o Project; o `GITHUB_TOKEN` da execução não tem acesso a Projects. Para um Project de usuário, use um PAT clássico com `read:project`. Não grave tokens no código ou nos arquivos do projeto.
 
 No GitHub Pages, habilite a publicação via GitHub Actions. Se a tela de configuração não estiver acessível, uma pessoa com permissão de administração pode habilitar o Pages pela API, usando GitHub CLI autenticado com escopo `repo`:
 
