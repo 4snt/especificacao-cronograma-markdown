@@ -1,82 +1,45 @@
 # Cronograma Markdown
 
-Planeje e acompanhe um cronograma em arquivos Markdown versionados. O
-script valida os dados e gera um site estático acessível com Gantt e
-tabela, pronto para publicar no GitHub Pages. Não requer banco de dados,
-backend ou edição manual do site gerado.
+Este repositório consulta as tasks de um **GitHub Project**, gera um gráfico de Gantt acessível e publica o site no GitHub Pages. As tasks e datas são mantidas no Project; este repositório contém o gerador e a documentação, sem uma cópia do cronograma em Markdown.
 
-## Objetivo
+## Como funciona
 
-Manter o cronograma como texto versionado no Git e gerar uma página
-estática com: - gráfico de Gantt; - atividades, marcos, responsáveis,
-duração e dependências; - progresso e estado das atividades; - histórico
-de mudanças pelo Git.
+1. Crie as tasks como issues e adicione-as ao GitHub Project.
+2. Preencha os campos de data **Start date** e **Target date** no Project.
+3. O GitHub Actions consulta o Project, gera `dist/index.html` e publica no Pages. A atualização ocorre em pushes para `main`, manualmente ou de hora em hora.
 
-## Princípios
+O gráfico inclui itens com as duas datas preenchidas. Mostra título, período, responsável, status e progresso. Responsáveis vêm dos assignees da issue ou do campo de pessoas `Owner`. O progresso vem do campo numérico `Progress` (0–100); se ausente, tasks concluídas aparecem com 100% e as demais com 0%.
 
-1.  **Markdown é a fonte da verdade**: a visualização é gerada e nunca
-    editada manualmente.
-2.  **Sem banco ou backend**: arquivos do repositório são os dados.
-3.  **CI reproduzível**: validar e gerar a publicação a cada alteração
-    aprovada na branch principal.
-4.  **Transparência**: distinguir datas planejadas, realizadas e
-    estimadas.
-5.  **Ferramenta independente**: não depender do Microsoft Project nem
-    de formatos proprietários.
+## Configuração do repositório
 
-## Documentos
+Em **Settings → Secrets and variables → Actions**, crie:
 
--   [`docs/spec.md`](docs/spec.md): requisitos funcionais e não
-    funcionais.
--   [`docs/plano-gestao-cronograma.md`](docs/plano-gestao-cronograma.md):
-    plano de gestão do cronograma, alinhado ao Domínio 3.
--   [`docs/formato-cronograma.md`](docs/formato-cronograma.md): formato
-    dos dados em Markdown.
--   [`docs/ci-publicacao.md`](docs/ci-publicacao.md): pipeline e
-    publicação.
--   [`cronograma/exemplo.md`](cronograma/exemplo.md): exemplo inicial de
-    cronograma.
+- Secret `PROJECTS_TOKEN`: token com leitura do GitHub Project. O `GITHUB_TOKEN` padrão não tem acesso a Projects. Para um Project de usuário, a documentação do GitHub indica PAT clássico com escopo `read:project`; se as issues forem privadas, o token também precisa de acesso ao repositório.
+- Variable `PROJECT_OWNER`: usuário ou organização que possui o Project.
+- Variable `PROJECT_NUMBER`: número exibido na URL do Project.
 
-## Uso local
+Opcionalmente, defina as variáveis `PROJECT_START_FIELD`, `PROJECT_FINISH_FIELD`, `PROJECT_STATUS_FIELD` e `PROJECT_PROGRESS_FIELD` se os nomes dos campos forem diferentes dos padrões (`Start date`, `Target date`, `Status` e `Progress`).
 
-Requer Python 3.10 ou superior.
+Associe o repositório ao Project uma vez. Com GitHub CLI autenticado e atualizado, use:
 
 ```sh
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-python scripts/build.py --check
-python scripts/build.py
+gh project link PROJECT_NUMBER --owner PROJECT_OWNER --repo especificacao-cronograma-markdown
 ```
 
-O site será criado em `dist/index.html`. Adicione cada tarefa ou marco
-como um arquivo `.md` em `cronograma/atividades/`, usando o front matter
-YAML descrito em [`docs/formato-cronograma.md`](docs/formato-cronograma.md).
-O calendário do MVP conta dias corridos. `start` e `finish` são as datas
-planejadas; campos `baseline_*` e `actual_*` registram linha de base e
-datas reais separadamente.
+Em seguida, em **Settings → Pages**, escolha **GitHub Actions** como fonte. Execute o workflow **Build and publish Gantt from GitHub Project** pela aba **Actions** para a primeira publicação.
 
-## Publicação no GitHub Pages
+## Execução local
 
-Envie o repositório para o GitHub usando a branch `main`. Em **Settings
-→ Pages**, escolha **GitHub Actions** como fonte de publicação. O workflow
-valida pull requests e, em pushes para `main`, gera e publica o site.
+Requer Python 3.10 ou superior. Exporte `PROJECTS_TOKEN`, `PROJECT_OWNER` e `PROJECT_NUMBER` no ambiente e rode:
 
-O exemplo em `cronograma/exemplo.md` é apenas demonstrativo. Copie e
-adapte os registros para `cronograma/atividades/` depois de confirmar
-datas e responsáveis com a equipe.
+```sh
+python3 scripts/build.py
+```
 
-## Escopo do MVP
+O site será gerado em `dist/index.html`. O script não cria nem altera tasks, issues, Projects ou seus campos.
 
-O MVP deve validar arquivos, calcular/representar dependências, gerar
-Gantt estático e publicar os artefatos. Edição colaborativa avançada,
-login, notificações e integração com ferramentas externas ficam fora do
-escopo inicial.
+## Escopo
 
-## Nota acadêmica
+O Project é a fonte de verdade. Este repositório transforma os itens planejados em uma visualização estática; não é um gestor de tarefas, não edita o board e não guarda uma lista paralela de atividades.
 
-A solução apoia práticas de planejamento, sequenciamento, estimativa,
-acompanhamento e comunicação do cronograma. Ela não substitui a análise
-da equipe nem determina automaticamente se uma previsão é realista. A
-adequação ao projeto real depende de validar escopo, calendário,
-estimativas e dependências com os integrantes.
+Consulte [a configuração da integração](docs/github-project.md), [a especificação](docs/spec.md) e [o fluxo de publicação](docs/ci-publicacao.md).

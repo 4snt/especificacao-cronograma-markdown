@@ -1,5 +1,5 @@
 # Status do projeto
 
-MVP implementado: validador de front matter e dependências, detecção de ciclos, gerador de site estático com Gantt e tabela acessível e workflow de publicação pelo GitHub Pages.
+Arquitetura em ajuste: as tasks e suas datas ficam no GitHub Project v2. Este repositório mantém apenas o gerador do Gantt e a documentação; o workflow consulta o Project via GraphQL e publica o HTML no GitHub Pages.
 
-O cronograma em `cronograma/atividades/` é demonstrativo. Datas e responsáveis precisam ser confirmados pela equipe antes de servir como compromisso real. Para publicar, envie a branch `main` ao GitHub e habilite GitHub Actions como fonte em **Settings → Pages**.
+Antes de publicar, configure `PROJECT_OWNER`, `PROJECT_NUMBER` e o secret `PROJECTS_TOKEN`, crie no Project os campos de data configurados e habilite Pages para GitHub Actions. O primeiro deploy falhou porque Pages ainda não está habilitado no repositório.

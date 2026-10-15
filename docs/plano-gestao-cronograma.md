@@ -65,9 +65,9 @@ Uma mudança relevante deve indicar: - o que mudou; - motivo; -
 atividades e marcos afetados; - impacto na data final e em outras
 dependências; - quem revisou/aprovou; - data da decisão.
 
-A implementação inicial pode preservar a linha de base em arquivo
-versionado separado. Não sobrescrever silenciosamente a linha de base
-durante atualizações rotineiras.
+A linha de base deve ser preservada em campos específicos ou registrada
+no histórico de decisões do Project. Não sobrescrever silenciosamente a
+linha de base durante atualizações rotineiras.
 
 ## 7. Acompanhamento e previsão
 
@@ -82,10 +82,11 @@ automaticamente o progresso a partir do tempo decorrido.
 
 ## 8. Comunicação
 
-O repositório e o site publicado são a referência compartilhada para o
-cronograma atual. Mudanças significativas devem ser comunicadas no canal
-da equipe e registradas no Git. O Gantt deve ser acompanhado por uma
-tabela legível, resumo dos marcos e indicação da data da última geração.
+O GitHub Project é a referência compartilhada para o cronograma atual. O
+repositório gera e publica a visualização estática. Mudanças
+significativas devem ser comunicadas no canal da equipe e registradas no
+histórico do Project. O Gantt deve ser acompanhado por uma tabela legível
+e indicação da data da última geração.
 
 ## 9. Papéis
 

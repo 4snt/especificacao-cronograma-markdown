@@ -1,68 +1,22 @@
-# CI e publicação estática
+# Geração e publicação
 
-## 1. Objetivo
+O workflow consulta o GitHub Project v2, gera um artefato HTML estático e publica no GitHub Pages. Ele roda em pushes para `main`, por agendamento horário ou sob demanda na aba Actions.
 
-Validar os arquivos do cronograma, gerar os artefatos de visualização e
-publicar uma página estática sem banco de dados ou backend.
+## Configuração necessária
 
-## 2. Fluxo de CI
+Defina `PROJECT_OWNER` e `PROJECT_NUMBER` nas variáveis do repositório e `PROJECTS_TOKEN` nos secrets. O token precisa ler o Project; o `GITHUB_TOKEN` da execução não tem acesso a Projects. Para um Project de usuário, use um PAT clássico com `read:project`. Não grave tokens no código ou nos arquivos do projeto.
 
-1.  Disparar em pull request e em push para a branch principal.
-2.  Fazer checkout do repositório.
-3.  Instalar uma versão fixada das ferramentas de geração.
-4.  Validar o esquema dos arquivos Markdown.
-5.  Validar IDs duplicados, datas, status, percentuais e dependências.
-6.  Detectar ciclos no grafo de dependências.
-7.  Gerar a página HTML, Gantt e tabela alternativa.
-8.  Em pull request, executar validações sem publicar.
-9.  Na branch principal, publicar os artefatos estáticos.
-10. Registrar data/hora da geração e versão do commit.
+No GitHub Pages, habilite a publicação via GitHub Actions. Se a tela de configuração não estiver acessível, uma pessoa com permissão de administração pode habilitar o Pages pela API, usando GitHub CLI autenticado com escopo `repo`:
 
-## 3. Artefatos
+```sh
+gh auth refresh -s repo
+gh api --method POST repos/4snt/especificacao-cronograma-markdown/pages -f build_type=workflow
+```
 
--   página inicial com resumo do cronograma;
--   gráfico de Gantt;
--   tabela acessível com atividades e datas;
--   lista de marcos;
--   legenda de estados;
--   informação de última atualização e commit de origem.
+O workflow pede apenas `contents: read`, `pages: write` e `id-token: write` para o job de deploy.
 
-## 4. Critérios de falha
+## Atualização das tasks
 
-A CI deve falhar antes da publicação se encontrar: - campo obrigatório
-ausente; - ID repetido; - data malformada; - fim anterior ao início; -
-progresso fora do intervalo de 0 a 100; - estado não reconhecido; -
-dependência apontando para ID inexistente; - dependência circular; -
-marco com intervalo de datas inválido.
+O GitHub não inicia este workflow quando campos de data do Project são alterados. Por isso há uma execução horária, além de execução sob demanda. Para atualizar imediatamente, abra **Actions → Build and publish Gantt from GitHub Project → Run workflow**.
 
-A mensagem de erro deve apontar o arquivo e o campo sempre que possível.
-
-## 5. Hospedagem
-
-Preferência inicial: GitHub Pages, se o projeto estiver hospedado no
-GitHub. Como alternativa, qualquer serviço de hospedagem estática capaz
-de publicar os arquivos gerados atende à arquitetura.
-
-A configuração do repositório deve habilitar a publicação por CI e
-conceder somente as permissões mínimas necessárias. Não inserir tokens
-pessoais nos arquivos Markdown nem no histórico do Git.
-
-## 6. Estratégia de implementação
-
-A implementação pode usar um script pequeno para ler front matter,
-validar os dados e gerar HTML com Mermaid Gantt ou outra biblioteca de
-visualização estática. A escolha da biblioteca é decisão técnica
-posterior; o formato de entrada deve permanecer independente dela.
-
-Se Mermaid for utilizado, validar as limitações de sintaxe e a forma
-como o renderer trata dependências, datas e progresso. Manter a tabela
-textual como alternativa obrigatória.
-
-## 7. Definição de pronto da pipeline
-
--   CI executa sem intervenção manual.
--   Dados inválidos bloqueiam a publicação.
--   Pull requests mostram falhas de validação.
--   A branch principal publica a versão mais recente.
--   A página publicada não depende de API ou banco.
--   A geração pode ser reproduzida localmente seguindo a documentação.
+Tasks sem datas de início e fim são omitidas com aviso. Se nenhuma task válida tiver ambas as datas, a geração falha para evitar publicar um Gantt vazio.

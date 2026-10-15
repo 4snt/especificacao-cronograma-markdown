@@ -1,31 +1,17 @@
-name: Validate and publish schedule
+name: Build and publish Gantt from GitHub Project
 
 on:
-  pull_request:
   push:
     branches: [main]
+  schedule:
+    - cron: '17 * * * *'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: pip
-      - name: Validate schedule
-        run: |
-          python -m pip install -r requirements.txt
-          python scripts/build.py --check
-
-  publish:
-    needs: validate
-    if: github.event_name != 'pull_request'
+  build-and-publish:
     permissions:
       contents: read
       pages: write
@@ -39,11 +25,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: pip
+      - uses: actions/configure-pages@v5
       - name: Build static site
-        run: |
-          python -m pip install -r requirements.txt
-          python scripts/build.py
+        run: python scripts/build.py
+        env:
+          PROJECTS_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          PROJECT_OWNER: ${{ vars.PROJECT_OWNER }}
+          PROJECT_NUMBER: ${{ vars.PROJECT_NUMBER }}
+          PROJECT_START_FIELD: ${{ vars.PROJECT_START_FIELD || 'Start date' }}
+          PROJECT_FINISH_FIELD: ${{ vars.PROJECT_FINISH_FIELD || 'Target date' }}
+          PROJECT_STATUS_FIELD: ${{ vars.PROJECT_STATUS_FIELD || 'Status' }}
+          PROJECT_PROGRESS_FIELD: ${{ vars.PROJECT_PROGRESS_FIELD || 'Progress' }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
