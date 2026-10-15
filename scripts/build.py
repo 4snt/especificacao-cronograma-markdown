@@ -14,49 +14,29 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 QUERY = """
 query($owner: String!, $number: Int!, $after: String) {
-  user(login: $owner) {
-    projectV2(number: $number) {
-      title
-      items(first: 100, after: $after) {
-        nodes {
-          fieldValues(first: 50) { nodes {
-            ... on ProjectV2ItemFieldDateValue { date field { ... on ProjectV2FieldCommon { name } } }
-            ... on ProjectV2ItemFieldSingleSelectValue { name field { ... on ProjectV2FieldCommon { name } } }
-            ... on ProjectV2ItemFieldNumberValue { number field { ... on ProjectV2FieldCommon { name } } }
-            ... on ProjectV2ItemFieldTextValue { text field { ... on ProjectV2FieldCommon { name } } }
-            ... on ProjectV2ItemFieldUserValue { users(first: 10) { nodes { login } } field { ... on ProjectV2FieldCommon { name } } }
-          } }
-          content {
-            ... on Issue { title url state assignees(first: 10) { nodes { login } } }
-            ... on PullRequest { title url state assignees(first: 10) { nodes { login } } }
-            ... on DraftIssue { title body }
-          }
-        }
-        pageInfo { hasNextPage endCursor }
-      }
-    }
+  repositoryOwner(login: $owner) {
+    ... on User { projectV2(number: $number) { ...ProjectSchedule } }
+    ... on Organization { projectV2(number: $number) { ...ProjectSchedule } }
   }
-  organization(login: $owner) {
-    projectV2(number: $number) {
-      title
-      items(first: 100, after: $after) {
-        nodes {
-          fieldValues(first: 50) { nodes {
-            ... on ProjectV2ItemFieldDateValue { date field { ... on ProjectV2FieldCommon { name } } }
-            ... on ProjectV2ItemFieldSingleSelectValue { name field { ... on ProjectV2FieldCommon { name } } }
-            ... on ProjectV2ItemFieldNumberValue { number field { ... on ProjectV2FieldCommon { name } } }
-            ... on ProjectV2ItemFieldTextValue { text field { ... on ProjectV2FieldCommon { name } } }
-            ... on ProjectV2ItemFieldUserValue { users(first: 10) { nodes { login } } field { ... on ProjectV2FieldCommon { name } } }
-          } }
-          content {
-            ... on Issue { title url state assignees(first: 10) { nodes { login } } }
-            ... on PullRequest { title url state assignees(first: 10) { nodes { login } } }
-            ... on DraftIssue { title body }
-          }
-        }
-        pageInfo { hasNextPage endCursor }
+}
+fragment ProjectSchedule on ProjectV2 {
+  title
+  items(first: 100, after: $after) {
+    nodes {
+      fieldValues(first: 50) { nodes {
+        ... on ProjectV2ItemFieldDateValue { date field { ... on ProjectV2FieldCommon { name } } }
+        ... on ProjectV2ItemFieldSingleSelectValue { name field { ... on ProjectV2FieldCommon { name } } }
+        ... on ProjectV2ItemFieldNumberValue { number field { ... on ProjectV2FieldCommon { name } } }
+        ... on ProjectV2ItemFieldTextValue { text field { ... on ProjectV2FieldCommon { name } } }
+        ... on ProjectV2ItemFieldUserValue { users(first: 10) { nodes { login } } field { ... on ProjectV2FieldCommon { name } } }
+      } }
+      content {
+        ... on Issue { title url state assignees(first: 10) { nodes { login } } }
+        ... on PullRequest { title url state assignees(first: 10) { nodes { login } } }
+        ... on DraftIssue { title body }
       }
     }
+    pageInfo { hasNextPage endCursor }
   }
 }
 """
@@ -79,7 +59,8 @@ def fetch_page(token: str, owner: str, number: int, after: str | None) -> dict:
         messages = "; ".join(error.get("message", "erro GraphQL") for error in result["errors"])
         raise RuntimeError(f"Erro consultando o GitHub Project: {messages}")
     data = result.get("data", {})
-    project = (data.get("user") or {}).get("projectV2") or (data.get("organization") or {}).get("projectV2")
+    owner_node = data.get("repositoryOwner") or {}
+    project = owner_node.get("projectV2")
     if not project:
         raise RuntimeError(f"Project #{number} não encontrado para o owner {owner!r}, ou token sem acesso de leitura.")
     return project
